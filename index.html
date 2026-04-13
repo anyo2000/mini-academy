@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>미니연수원</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- 헤더 -->
+  <header class="header">
+    <div class="logo"><span class="accent">미니</span>연수원</div>
+    <div class="header-right">
+      <button class="user-badge" id="userBadge" onclick="showIdPrompt()">사번 입력</button>
+    </div>
+  </header>
+
+  <!-- 카테고리 탭 -->
+  <nav class="cat-nav">
+    <div class="cat-scroll">
+      <button class="cat-tab active" data-filter="all">홈</button>
+      <button class="cat-tab" data-filter="LINK">LINK</button>
+      <button class="cat-tab" data-filter="신인">신인</button>
+      <button class="cat-tab" data-filter="화법">화법</button>
+      <button class="cat-tab" data-filter="상품">상품</button>
+    </div>
+  </nav>
+
+  <!-- 히어로 배너 -->
+  <section class="hero" id="hero"></section>
+
+  <!-- 갤러리 -->
+  <main class="gallery" id="gallery"></main>
+
+  <!-- 하단 탭바 -->
+  <div class="bottom-bar">
+    <button class="bottom-tab active">
+      <span class="tab-icon">🏠</span>
+      <span>홈</span>
+    </button>
+    <button class="bottom-tab" onclick="showIdPrompt()">
+      <span class="tab-icon">👤</span>
+      <span>내 정보</span>
+    </button>
+  </div>
+
+  <!-- 영상 재생 모달 -->
+  <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closePlayer()">✕</button>
+      <div class="video-container" id="videoContainer"></div>
+      <div class="modal-info">
+        <h2 id="modalTitle"></h2>
+        <p class="modal-desc-text" id="modalDesc"></p>
+        <div class="modal-meta">
+          <span id="modalDuration"></span>
+          <span id="modalDate"></span>
+        </div>
+        <div class="modal-tags" id="modalTags"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 사번 입력 모달 -->
+  <div class="id-overlay" id="idOverlay">
+    <div class="id-modal">
+      <div class="id-icon">🎓</div>
+      <h2>미니연수원</h2>
+      <div class="id-sub">MINI ACADEMY</div>
+      <p>사번 4자리를 입력해주세요</p>
+      <input type="text" id="idInput" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="0000" autocomplete="off">
+      <button class="id-submit" onclick="submitId()">시작하기</button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

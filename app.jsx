@@ -43,6 +43,16 @@ const SECTIONS = [
 
 const FILTER_TABS = ['홈'].concat(SECTIONS.map(function(s) { return s.tabLabel; }));
 
+// 탭 아이콘
+const TAB_ICONS = {
+  '홈': '🏠',
+  '개론': '◐',
+  'L · 연결': '🔗',
+  'I · 이슈': '❗',
+  'N · 설계': '▤',
+  'K · 해결': '✓',
+};
+
 // 탭 라벨 → chapter key 매핑
 function tabToChapter(tab) {
   var sec = SECTIONS.find(function(s) { return s.tabLabel === tab; });
@@ -198,6 +208,7 @@ function CategoryStrip({ active, onChange }) {
               className={'cat-pill' + (active === tab ? ' active' : '')}
               onClick={function() { onChange(tab); }}
             >
+              {TAB_ICONS[tab] && <span className="cat-icon">{TAB_ICONS[tab]}</span>}
               {tab}
             </button>
           );
@@ -319,12 +330,14 @@ function VideoCard({ video, watched, watchCount, onClick }) {
  *  Section (가로 스크롤 행)
  * ============================================================ */
 
-function Section({ title, subtitle, count, videos, layout, isWatched, getWatchCount, onOpen, isTop }) {
+function Section({ title, subtitle, count, videos, layout, isWatched, getWatchCount, onOpen, isTop, chapterKey }) {
   if (!videos || videos.length === 0) return null;
+  var dotColor = chapterKey ? (themeFor(chapterKey).accent || 'var(--orange)') : 'var(--orange)';
   return (
     <div className={'section' + (isTop ? ' top' : '')}>
       <div className="section-head">
         <h3 className="section-title">
+          <span className="section-dot" style={{ background: dotColor }} />
           {title}
           {count > 0 && <span className="section-count">({count}편)</span>}
         </h3>
@@ -886,7 +899,7 @@ function App() {
     if (cat !== '홈') {
       var ch = tabToChapter(cat);
       var sorted = filtered.slice().sort(function(a, b) { return a.idx - b.idx; });
-      return [{ title: sectionTitle(ch), subtitle: sectionSubtitle(ch), videos: sorted, count: sorted.length }];
+      return [{ title: sectionTitle(ch), subtitle: sectionSubtitle(ch), videos: sorted, count: sorted.length, chapterKey: ch }];
     }
 
     // 홈 탭 — SECTIONS 순서대로 가로 스크롤
@@ -895,7 +908,7 @@ function App() {
       var list = videos.filter(function(v) { return v.chapter === sec.key; });
       list.sort(function(a, b) { return a.idx - b.idx; });
       if (list.length > 0) {
-        result.push({ title: sec.title, subtitle: sec.subtitle, videos: list, count: list.length });
+        result.push({ title: sec.title, subtitle: sec.subtitle, videos: list, count: list.length, chapterKey: sec.key });
       }
     });
 
@@ -944,6 +957,7 @@ function App() {
                     getWatchCount={getWatchCount}
                     onOpen={setModalVideo}
                     isTop={s.isTop}
+                    chapterKey={s.chapterKey}
                   />
                 );
               })}

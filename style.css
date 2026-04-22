@@ -110,6 +110,7 @@ body {
   position: relative; transition: color 0.2s; margin-right: 14px; font-family: inherit;
 }
 .cat-pill.active { color: var(--text); font-weight: 700; }
+.cat-pill .cat-icon { font-size: 12px; margin-right: 2px; }
 .cat-pill.active::after {
   content: ''; position: absolute; left: 4px; right: 4px; bottom: -3px;
   height: 2.5px; background: var(--cat-accent, var(--orange)); border-radius: 2px;
@@ -151,7 +152,8 @@ body {
 .section.top .section-title { color: var(--orange); }
 .section-head { display: flex; align-items: baseline; justify-content: space-between; padding: 0 16px; margin-bottom: 12px; flex-wrap: wrap; gap: 2px 12px; }
 .section-subtitle { font-size: 13px; font-weight: 500; color: var(--text-mute); letter-spacing: -0.01em; }
-.section-title { font-size: 19px; font-weight: 800; letter-spacing: -0.02em; color: var(--text); margin: 0; display: flex; align-items: baseline; gap: 8px; }
+.section-title { font-size: 19px; font-weight: 800; letter-spacing: -0.02em; color: var(--text); margin: 0; display: flex; align-items: center; gap: 8px; }
+.section-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 .section-count { font-family: 'Inter'; font-size: 13px; font-weight: 500; color: var(--text-mute); }
 .card-row { display: flex; gap: var(--card-gap); padding: 4px 16px 8px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-left: 16px; }
 .card-row.stack { flex-direction: column; align-items: center; overflow-x: visible; scroll-snap-type: none; gap: 16px; padding: 4px 16px 16px; }
@@ -200,7 +202,9 @@ body {
 
 /* ===== 탭바 ===== */
 .tabbar {
-  position: sticky; bottom: 0; z-index: 30;
+  position: fixed; bottom: 0; left: 0; right: 0;
+  max-width: 430px; margin: 0 auto;
+  z-index: 30;
   display: grid; grid-template-columns: 1fr 1fr;
   background: rgba(255,255,255,0.92); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
   border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom, 0);

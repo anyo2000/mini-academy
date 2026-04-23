@@ -305,11 +305,6 @@ function VideoCard({ video, watched, watchCount, onClick }) {
         </div>
         <div className="card-chapter-tag">{chapterTag}</div>
         <div className="card-main-title">{mainTitle}</div>
-        {watched && (
-          <div className="card-watched-mark">
-            <CheckIcon /> 시청 {watchCount > 1 ? watchCount + '회' : ''}
-          </div>
-        )}
       </div>
       <div className="card-foot">
         <div className="card-foot-title">{subTitle}</div>

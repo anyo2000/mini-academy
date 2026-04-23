@@ -34,7 +34,7 @@ const DEFAULT_THEME = CAT_THEMES['개론'];
 
 // 섹션 정의 (홈에서 그룹핑용)
 const SECTIONS = [
-  { key: '개론', title: '개론', subtitle: 'LINK 컨설팅의 탄생', tabLabel: '개론' },
+  { key: '개론', title: '개론', subtitle: '왜 LINK인가', tabLabel: '개론' },
   { key: 'L', title: 'L · 연결', subtitle: '3초 안에 고객을 붙잡는 법', tabLabel: 'L · 연결' },
   { key: 'I', title: 'I · 이슈', subtitle: '숫자로 한 방 먹이기', tabLabel: 'I · 이슈' },
   { key: 'N', title: 'N · 설계', subtitle: '넣는 게 아니라 빼는 기술', tabLabel: 'N · 설계' },
@@ -265,7 +265,7 @@ function Hero({ video, onOpen }) {
         <div className="hero-thumb-title">{mainTitle}</div>
       </div>
       <div className="hero-bottom" style={{ background: 'linear-gradient(to bottom, ' + theme.bg1 + ' 0%, ' + theme.bg2 + ' 100%)' }}>
-        <div className="hero-ep-tag">{'EP.' + String(video.idx).padStart(2, '0') + ' · ' + video.chapter}</div>
+        <div className="hero-ep-tag">{video.id === 'intro' ? 'OVERVIEW' : 'EP.' + String(video.idx).padStart(2, '0') + ' · ' + video.chapter}</div>
         <h2 className="hero-title">{subTitle}</h2>
         <div className="hero-cta-row">
           <button className="hero-cta" onClick={function(e) { e.stopPropagation(); onOpen(video); }}>
@@ -335,9 +335,8 @@ function Section({ title, subtitle, count, videos, layout, isWatched, getWatchCo
   var dotColor = chapterKey ? (themeFor(chapterKey).accent || 'var(--orange)') : 'var(--orange)';
   return (
     <div className={'section' + (isTop ? ' top' : '')}>
-      <div className="section-head">
+      <div className="section-head" style={{ '--section-accent': dotColor }}>
         <h3 className="section-title">
-          <span className="section-dot" style={{ background: dotColor }} />
           {title}
           {count > 0 && <span className="section-count">({count}편)</span>}
         </h3>
@@ -915,11 +914,21 @@ function App() {
     return result;
   }, [filtered, videos, cat]);
 
-  // 히어로 영상
+  // 히어로 — LINK 컨설팅 소개 (고정)
   var heroVideo = useMemo(function() {
-    var feat = filtered.filter(function(v) { return v.featured; });
-    return feat.length > 0 ? feat[0] : filtered[0] || null;
-  }, [filtered]);
+    return {
+      id: 'intro',
+      title: 'LINK 컨설팅 소개',
+      desc: 'LINK 컨설팅 프레임워크의 전체 흐름을 한눈에 살펴봅니다.',
+      chapter: '개론',
+      idx: 0,
+      duration: '03:12',
+      youtubeId: 'c3zpMobBm-M',
+      date: '2026-04-20',
+      instructor: 'LINK운영팀',
+      team: 'LINK운영팀',
+    };
+  }, []);
 
   return (
     <div className="stage">

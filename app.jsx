@@ -920,7 +920,7 @@ function App() {
       chapter: '개론',
       idx: 0,
       duration: '03:12',
-      youtubeId: 'c3zpMobBm-M',
+      youtubeId: 'DEVGIlscNEY',
       date: '2026-04-20',
       instructor: 'LINK운영팀',
       team: 'LINK운영팀',

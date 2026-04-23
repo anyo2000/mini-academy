@@ -175,14 +175,14 @@ body {
 @media (hover: hover) {
   .card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); border-color: rgba(255,102,0,0.2); }
 }
-.card-thumb-full { position: relative; aspect-ratio: 4 / 3; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; }
+.card-thumb-full { position: relative; aspect-ratio: 4 / 3; overflow: hidden; display: flex; flex-direction: column; }
 .card-thumb-full::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 70%; background: linear-gradient(to top, rgba(0,0,0,0.75), transparent); pointer-events: none; }
 .card-thumb-glow { position: absolute; right: -40px; top: -40px; width: 120px; height: 120px; border-radius: 50%; filter: blur(12px); pointer-events: none; }
 .card-brand { position: absolute; top: 12px; left: 14px; right: 14px; display: flex; flex-direction: column; gap: 4px; }
 .card-brand span { font-family: 'Inter'; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
 .card-chapter-tag { position: absolute; top: 12px; right: 14px; font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.5); letter-spacing: 0.08em; font-family: 'Inter'; }
-.card-content-area { position: relative; z-index: 1; padding: 0 14px 14px; display: flex; flex-direction: column; gap: 4px; }
-.card-main-title { width: 100%; font-weight: 900; font-size: 20px; line-height: 1.2; letter-spacing: -0.03em; color: #fff; text-shadow: 0 2px 12px rgba(0,0,0,0.3); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.card-content-area { position: relative; z-index: 1; padding: 0 14px 14px; flex: 1; display: flex; flex-direction: column; justify-content: flex-end; padding-top: 40px; }
+.card-main-title { width: 100%; font-weight: 900; font-size: 20px; line-height: 1.2; letter-spacing: -0.03em; color: #fff; text-shadow: 0 2px 12px rgba(0,0,0,0.3); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 12px; }
 .card-overlay-meta { display: flex; flex-direction: column; gap: 4px; }
 .card-overlay-sub { font-size: 13px; font-weight: 600; line-height: 1.3; color: rgba(255,255,255,0.6); display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
 .card-overlay-bottom { display: flex; align-items: center; gap: 8px; }

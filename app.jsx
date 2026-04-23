@@ -297,21 +297,23 @@ function VideoCard({ video, watched, watchCount, onClick }) {
 
   return (
     <div className={'card' + (watched ? ' watched' : '')} onClick={function() { onClick(video); }}>
-      <div className="card-thumb-real" style={thumbStyle}>
+      <div className="card-thumb-full" style={thumbStyle}>
         <div className="card-thumb-glow" style={{ background: 'radial-gradient(circle, ' + theme.glow + ', transparent 65%)' }} />
         <div className="card-brand">
           <span style={{ color: theme.accent }}>LINK CONSULTING</span>
           <div className="brand-line" style={{ background: 'linear-gradient(to right, ' + theme.accent + '99, transparent)' }} />
         </div>
         <div className="card-chapter-tag">{chapterTag}</div>
-        <div className="card-main-title">{mainTitle}</div>
-      </div>
-      <div className="card-foot">
-        <div className="card-foot-title">{subTitle}</div>
-        <div className="card-foot-meta">
-          <span className="card-dur">{video.duration}</span>
-          {isNew && !watched && <span className="card-new">NEW</span>}
-          {watched && <span className="card-done-chip"><CheckIcon size={10} />완료</span>}
+        <div className="card-content-area">
+          <div className="card-main-title">{mainTitle}</div>
+          <div className="card-overlay-meta">
+            <span className="card-overlay-sub">{subTitle}</span>
+            <div className="card-overlay-bottom">
+              <span className="card-dur-light">{video.duration}</span>
+              {isNew && !watched && <span className="card-new">NEW</span>}
+              {watched && <span className="card-done-chip"><CheckIcon size={10} />완료</span>}
+            </div>
+          </div>
         </div>
       </div>
       {watched && (

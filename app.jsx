@@ -376,7 +376,7 @@ function LoginOverlay({ initialId, onSubmit, onClose }) {
 
   function handleSubmit() {
     var val = inputRef.current.value.trim();
-    if (val.length !== 4 || !/^\d{4}$/.test(val)) {
+    if (val.length !== 7 || !/^\d{7}$/.test(val)) {
       setError(true);
       inputRef.current.focus();
       return;
@@ -396,14 +396,14 @@ function LoginOverlay({ initialId, onSubmit, onClose }) {
         <div className="login-icon">🎓</div>
         <h2>미니연수원</h2>
         <div className="sub">MINI ACADEMY</div>
-        <p>사번 4자리를 입력해주세요</p>
+        <p>사번 7자리를 입력해주세요</p>
         <input
           ref={inputRef}
           type="text"
-          maxLength="4"
+          maxLength="7"
           inputMode="numeric"
           pattern="[0-9]*"
-          placeholder="0000"
+          placeholder="0000000"
           autoComplete="off"
           className={hasError ? 'error' : ''}
           onKeyUp={handleKeyUp}

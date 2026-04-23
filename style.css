@@ -316,7 +316,7 @@ body {
 .login-modal h2 { font-size: 24px; font-weight: 900; margin: 0 0 4px; color: var(--text); }
 .login-modal .sub { color: var(--orange); font-size: 13px; font-weight: 600; margin-bottom: 20px; }
 .login-modal p { color: var(--text-dim); font-size: 14px; margin: 0 0 20px; }
-.login-modal input { width: 100%; padding: 14px; font-size: 26px; font-weight: 700; text-align: center; letter-spacing: 8px; background: var(--bg-card); border: 1.5px solid var(--line); border-radius: 12px; color: var(--text); outline: none; font-family: inherit; }
+.login-modal input { width: 100%; padding: 14px; font-size: 22px; font-weight: 700; text-align: center; letter-spacing: 5px; background: var(--bg-card); border: 1.5px solid var(--line); border-radius: 12px; color: var(--text); outline: none; font-family: inherit; }
 .login-modal input:focus { border-color: var(--orange); }
 .login-modal input.error { border-color: var(--red); }
 .login-submit { width: 100%; margin-top: 14px; padding: 13px; background: var(--orange); color: white; font-size: 16px; font-weight: 700; border: none; border-radius: 12px; cursor: pointer; font-family: inherit; }

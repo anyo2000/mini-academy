@@ -612,15 +612,31 @@ function VideoModal({ video, allVideos, onClose, onOpen, onPlay }) {
  * ============================================================ */
 
 function FullscreenPlayer({ video, onClose, onMarkWatched }) {
+  var _vis = useState(true);
+  var controlsVisible = _vis[0]; var setControlsVisible = _vis[1];
+  var timerRef = useRef(null);
+
+  function hideAfterDelay() {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(function() { setControlsVisible(false); }, 3000);
+  }
+
+  function handleTap() {
+    setControlsVisible(true);
+    hideAfterDelay();
+  }
+
   useEffect(function() {
     if (!video) return;
     document.body.style.overflow = 'hidden';
     if (onMarkWatched) onMarkWatched(video.id);
     var handler = function(e) { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', handler);
+    hideAfterDelay();
     return function() {
       document.body.style.overflow = '';
       window.removeEventListener('keydown', handler);
+      if (timerRef.current) clearTimeout(timerRef.current);
     };
   }, [video]);
 
@@ -629,7 +645,7 @@ function FullscreenPlayer({ video, onClose, onMarkWatched }) {
   var hasYoutube = video.youtubeId && video.youtubeId !== '';
 
   return (
-    <div className="player-root">
+    <div className="player-root" onClick={handleTap}>
       <div className="player-rotate">
         <div className="player-stage" style={{ background: 'linear-gradient(135deg, ' + gr[0] + ' 0%, ' + gr[1] + ' 100%)' }}>
           {hasYoutube ? (
@@ -646,13 +662,13 @@ function FullscreenPlayer({ video, onClose, onMarkWatched }) {
               <div className="ph-sub">영상이 준비 중입니다</div>
             </div>
           )}
-          <div className="player-info-bar">
-            <button className="player-back-btn" onClick={onClose} aria-label="뒤로">
+          <div className={'player-info-bar' + (controlsVisible ? '' : ' hidden')}>
+            <button className="player-back-btn" onClick={function(e) { e.stopPropagation(); onClose(); }} aria-label="뒤로">
               <Icon name="back" size={16} />
             </button>
             <span className="player-title-text">{video.title}</span>
           </div>
-          <button className="player-close-btn" onClick={onClose} aria-label="닫기">
+          <button className={'player-close-btn' + (controlsVisible ? '' : ' hidden')} onClick={function(e) { e.stopPropagation(); onClose(); }} aria-label="닫기">
             <Icon name="x" size={16} />
           </button>
         </div>

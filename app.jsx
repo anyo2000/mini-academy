@@ -170,7 +170,7 @@ function CheckIcon({ size }) {
 function Header({ userId, onShowLogin, onShowSearch }) {
   return (
     <div className="header">
-      <div className="logo"><img src="assets/logo.png" alt="" /><span><span className="accent">미니</span>연수원</span></div>
+      <div className="logo"><img src="assets/logo-full.png" alt="미니연수원" /></div>
       <div className="header-right">
         <button className="header-icon" onClick={onShowSearch} aria-label="검색">
           <Icon name="search" size={18} />

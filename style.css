@@ -54,9 +54,8 @@ body {
   background: linear-gradient(to bottom, rgba(250,246,240,0.97) 60%, rgba(250,246,240,0));
   backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
 }
-.logo { display: flex; align-items: center; gap: 12px; font-weight: 900; font-size: 28px; letter-spacing: -0.02em; }
-.logo img { width: 56px; height: 56px; object-fit: contain; mix-blend-mode: multiply; border-radius: 12px; }
-.logo .accent { color: var(--orange); }
+.logo { display: flex; align-items: center; }
+.logo img { height: 44px; object-fit: contain; }
 .header-right { display: flex; align-items: center; gap: 10px; }
 .badge-id {
   display: inline-flex; align-items: center; gap: 6px;

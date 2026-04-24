@@ -96,6 +96,17 @@ function instructorFor(video) {
   return { name: '미니연수원', team: '교육팀' };
 }
 
+function parseDuration(dur) {
+  var parts = dur.split(':').map(Number);
+  return parts[0] * 60 + (parts[1] || 0);
+}
+
+function formatSec(sec) {
+  var m = Math.floor(sec / 60);
+  var s = Math.floor(sec % 60);
+  return m + ':' + (s < 10 ? '0' : '') + s;
+}
+
 function daysAgoText(dateStr) {
   const d = new Date(dateStr);
   const now = new Date();
@@ -700,14 +711,19 @@ function VideoModal({ video, allVideos, onClose, onOpen, onPlay, userId }) {
  *  FullscreenPlayer (가로 90° 회전 + YouTube 재생)
  * ============================================================ */
 
-function FullscreenPlayer({ video, onClose, onMarkWatched }) {
+function FullscreenPlayer({ video, onClose, onAddWatchTime, onMarkWatched }) {
   var _vis = useState(true);
   var controlsVisible = _vis[0]; var setControlsVisible = _vis[1];
-  var timerRef = useRef(null);
+  var hideTimer = useRef(null);
+  var playerRef = useRef(null);
+  var tickRef = useRef(null);
+  var sessionSec = useRef(0);
+  var maxSec = useRef(0);
+  var markedRef = useRef(false);
 
   function hideAfterDelay() {
-    if (timerRef.current) clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(function() { setControlsVisible(false); }, 4000);
+    if (hideTimer.current) clearTimeout(hideTimer.current);
+    hideTimer.current = setTimeout(function() { setControlsVisible(false); }, 4000);
   }
 
   function showControls() {
@@ -715,17 +731,68 @@ function FullscreenPlayer({ video, onClose, onMarkWatched }) {
     hideAfterDelay();
   }
 
+  function startTick() {
+    if (tickRef.current) return;
+    tickRef.current = setInterval(function() {
+      if (sessionSec.current < maxSec.current) {
+        sessionSec.current += 1;
+      }
+    }, 1000);
+  }
+
+  function stopTick() {
+    if (tickRef.current) { clearInterval(tickRef.current); tickRef.current = null; }
+  }
+
+  function handleClose() {
+    stopTick();
+    if (sessionSec.current > 0 && onAddWatchTime) {
+      onAddWatchTime(video.id, sessionSec.current);
+    }
+    if (playerRef.current && playerRef.current.destroy) {
+      try { playerRef.current.destroy(); } catch(e) {}
+    }
+    playerRef.current = null;
+    onClose();
+  }
+
   useEffect(function() {
     if (!video) return;
     document.body.style.overflow = 'hidden';
+    maxSec.current = parseDuration(video.duration);
+    sessionSec.current = 0;
+    markedRef.current = false;
+
+    // 시청 시작 기록
     if (onMarkWatched) onMarkWatched(video.id);
-    var handler = function(e) { if (e.key === 'Escape') onClose(); };
+
+
+    var hasYoutube = video.youtubeId && video.youtubeId !== '';
+
+    if (hasYoutube && window.YT && window.YT.Player) {
+      playerRef.current = new window.YT.Player('yt-player-div', {
+        videoId: video.youtubeId,
+        playerVars: { autoplay: 1, playsinline: 1, rel: 0, modestbranding: 1 },
+        events: {
+          onStateChange: function(e) {
+            if (e.data === window.YT.PlayerState.PLAYING) {
+              startTick();
+            } else {
+              stopTick();
+            }
+          }
+        }
+      });
+    }
+
+    var handler = function(e) { if (e.key === 'Escape') handleClose(); };
     window.addEventListener('keydown', handler);
     hideAfterDelay();
     return function() {
       document.body.style.overflow = '';
       window.removeEventListener('keydown', handler);
-      if (timerRef.current) clearTimeout(timerRef.current);
+      stopTick();
+      if (hideTimer.current) clearTimeout(hideTimer.current);
     };
   }, [video]);
 
@@ -738,29 +805,22 @@ function FullscreenPlayer({ video, onClose, onMarkWatched }) {
       <div className="player-rotate">
         <div className="player-stage" style={{ background: 'linear-gradient(135deg, ' + gr[0] + ' 0%, ' + gr[1] + ' 100%)' }}>
           {hasYoutube ? (
-            <iframe
-              src={'https://www.youtube.com/embed/' + video.youtubeId + '?autoplay=1&playsinline=1&rel=0&modestbranding=1'}
-              title={video.title}
-              allow="autoplay; encrypted-media; fullscreen"
-              allowFullScreen
-              style={{ width: '100%', height: '100%', border: 0 }}
-            />
+            <div id="yt-player-div" style={{ width: '100%', height: '100%' }} />
           ) : (
             <div className="player-placeholder">
               <div className="ph-title">{video.title}</div>
               <div className="ph-sub">영상이 준비 중입니다</div>
             </div>
           )}
-          {/* 투명 터치 레이어: 컨트롤 숨겨진 상태에서만 터치 받음 */}
           {!controlsVisible && (
             <div className="player-touch-layer" onClick={showControls} />
           )}
           <div className={'player-controls-overlay' + (controlsVisible ? '' : ' hidden')}>
-            <button className="player-back-btn" onClick={function(e) { e.stopPropagation(); onClose(); }} aria-label="뒤로">
+            <button className="player-back-btn" onClick={function(e) { e.stopPropagation(); handleClose(); }} aria-label="뒤로">
               <Icon name="back" size={16} />
             </button>
             <span className="player-title-text">{video.title}</span>
-            <button className="player-close-btn" onClick={function(e) { e.stopPropagation(); onClose(); }} aria-label="닫기">
+            <button className="player-close-btn" onClick={function(e) { e.stopPropagation(); handleClose(); }} aria-label="닫기">
               <Icon name="x" size={16} />
             </button>
           </div>
@@ -780,9 +840,11 @@ function MyLearning({ videos, watchHistory, onOpen }) {
     Object.keys(watchHistory).forEach(function(vid) {
       var v = videos.find(function(x) { return x.id === vid; });
       if (v) {
+        var entry = watchHistory[vid];
         list.push(Object.assign({}, v, {
-          watchCount: watchHistory[vid].count,
-          lastWatched: watchHistory[vid].lastWatched,
+          watchCount: entry.count,
+          lastWatched: entry.lastWatched,
+          watchedSec: entry.watchedSec || 0,
         }));
       }
     });
@@ -790,11 +852,10 @@ function MyLearning({ videos, watchHistory, onOpen }) {
     return list;
   }, [videos, watchHistory]);
 
-  var completed = rows.length;
+  var completed = rows.filter(function(r) { return r.watchCount > 0; }).length;
   var totalMin = useMemo(function() {
     return rows.reduce(function(acc, r) {
-      var parts = r.duration.split(':').map(Number);
-      return acc + parts[0] + parts[1] / 60;
+      return acc + (r.watchedSec || 0) / 60;
     }, 0);
   }, [rows]);
 
@@ -973,20 +1034,50 @@ function App() {
     localStorage.setItem('mini-academy-history-' + userId, JSON.stringify(next));
   }, [userId]);
 
-  // 시청 표시
-  var markWatched = useCallback(function(videoId) {
+  // 시청 시간 누적 (플레이어 닫힐 때 호출)
+  var addWatchTime = useCallback(function(videoId, sec) {
     setWatchHistory(function(prev) {
-      var entry = prev[videoId] || { count: 0, lastWatched: '' };
+      var v = videos.find(function(x) { return x.id === videoId; });
+      var maxSec = v ? parseDuration(v.duration) : 9999;
+      var entry = prev[videoId] || { count: 0, lastWatched: '', watchedSec: 0 };
+      // 이번 세션 시청 시간 (영상 길이 제한)
+      var sessionCapped = Math.min(sec, maxSec);
+      var newWatchedSec = (entry.watchedSec || 0) + sessionCapped;
+      // 80% 이상 누적 시청 시 완료 카운트 +1
+      var threshold = maxSec * 0.8;
+      var wasComplete = (entry.watchedSec || 0) >= threshold;
+      var nowComplete = newWatchedSec >= threshold;
+      var newCount = entry.count + (nowComplete && !wasComplete ? 1 : 0);
       var next = Object.assign({}, prev);
-      next[videoId] = { count: entry.count + 1, lastWatched: new Date().toISOString() };
+      next[videoId] = {
+        count: newCount,
+        lastWatched: new Date().toISOString(),
+        watchedSec: newWatchedSec
+      };
+      saveHistory(next);
+      return next;
+    });
+  }, [saveHistory, videos]);
+
+  // 시청 횟수 기록 (플레이어 열 때 — 시청 시작만 기록, 완료 아님)
+  var markOpened = useCallback(function(videoId) {
+    setWatchHistory(function(prev) {
+      var entry = prev[videoId] || { count: 0, lastWatched: '', watchedSec: 0 };
+      var next = Object.assign({}, prev);
+      next[videoId] = Object.assign({}, entry, { lastWatched: new Date().toISOString() });
       saveHistory(next);
       return next;
     });
   }, [saveHistory]);
 
   var isWatched = useCallback(function(videoId) {
-    return !!(watchHistory[videoId] && watchHistory[videoId].count > 0);
-  }, [watchHistory]);
+    if (!watchHistory[videoId]) return false;
+    var entry = watchHistory[videoId];
+    var v = videos.find(function(x) { return x.id === videoId; });
+    if (!v) return entry.count > 0;
+    var maxSec = parseDuration(v.duration);
+    return (entry.watchedSec || 0) >= maxSec * 0.8;
+  }, [watchHistory, videos]);
 
   var getWatchCount = useCallback(function(videoId) {
     return watchHistory[videoId] ? watchHistory[videoId].count : 0;
@@ -1116,7 +1207,8 @@ function App() {
         <FullscreenPlayer
           video={playerVideo}
           onClose={function() { setPlayerVideo(null); }}
-          onMarkWatched={markWatched}
+          onAddWatchTime={addWatchTime}
+          onMarkWatched={markOpened}
         />
       )}
 

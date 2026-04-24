@@ -137,6 +137,8 @@ function Icon({ name, size }) {
       return <svg {...c} fill="currentColor" stroke="none"><path d="M7 11v9H4v-9h3zm3 9V11l4-8c1.1 0 2 .9 2 2v4h5a2 2 0 0 1 2 2l-1.5 7.5A2 2 0 0 1 19.5 20H10z"/></svg>;
     case 'share':
       return <svg {...c}><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M8.2 13.2l7.6 4.4M15.8 6.4l-7.6 4.4"/></svg>;
+    case 'message':
+      return <svg {...c}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10z"/></svg>;
     case 'x':
       return <svg {...c} strokeWidth="2.4"><path d="M18 6L6 18M6 6l12 12"/></svg>;
     case 'back':
@@ -208,7 +210,6 @@ function CategoryStrip({ active, onChange }) {
               className={'cat-pill' + (active === tab ? ' active' : '')}
               onClick={function() { onChange(tab); }}
             >
-              {TAB_ICONS[tab] && <span className="cat-icon">{TAB_ICONS[tab]}</span>}
               {tab}
             </button>
           );
@@ -511,13 +512,89 @@ function RelatedCard({ video, onClick }) {
  *  VideoModal (영상 상세)
  * ============================================================ */
 
-function VideoModal({ video, allVideos, onClose, onOpen, onPlay }) {
-  var _l = useState(false); var liked = _l[0]; var setLiked = _l[1];
-  var _b = useState(false); var bookmarked = _b[0]; var setBookmarked = _b[1];
+function VideoModal({ video, allVideos, onClose, onOpen, onPlay, userId }) {
+  // 좋아요 (전체 공유 — 영상별)
+  var likesKey = 'mini-academy-likes';
+  function loadLikes() {
+    try { return JSON.parse(localStorage.getItem(likesKey)) || {}; } catch(e) { return {}; }
+  }
+  var _likes = useState(loadLikes);
+  var allLikes = _likes[0]; var setAllLikes = _likes[1];
+
+  var videoLikes = (allLikes[video && video.id] || []);
+  var liked = userId && videoLikes.indexOf(userId) !== -1;
+  var likeCount = videoLikes.length;
+
+  function toggleLike() {
+    if (!userId) return;
+    var next = Object.assign({}, allLikes);
+    var arr = (next[video.id] || []).slice();
+    var idx = arr.indexOf(userId);
+    if (idx === -1) { arr.push(userId); } else { arr.splice(idx, 1); }
+    next[video.id] = arr;
+    setAllLikes(next);
+    localStorage.setItem(likesKey, JSON.stringify(next));
+  }
+
+  // 나중에 보기 (사용자별)
+  var bmKey = 'mini-academy-bookmarks-' + (userId || '');
+  function loadBookmarks() {
+    try { return JSON.parse(localStorage.getItem(bmKey)) || []; } catch(e) { return []; }
+  }
+  var _bm = useState(loadBookmarks);
+  var bookmarks = _bm[0]; var setBookmarks = _bm[1];
+  var bookmarked = video && bookmarks.indexOf(video.id) !== -1;
+
+  function toggleBookmark() {
+    if (!userId || !video) return;
+    var arr = bookmarks.slice();
+    var idx = arr.indexOf(video.id);
+    if (idx === -1) { arr.push(video.id); } else { arr.splice(idx, 1); }
+    setBookmarks(arr);
+    localStorage.setItem(bmKey, JSON.stringify(arr));
+  }
+
+  // 댓글 (전체 공유 — 영상별)
+  var commentsKey = 'mini-academy-comments';
+  function loadComments() {
+    try { return JSON.parse(localStorage.getItem(commentsKey)) || {}; } catch(e) { return {}; }
+  }
+  var _comments = useState(loadComments);
+  var allComments = _comments[0]; var setAllComments = _comments[1];
+  var _commentText = useState(''); var commentText = _commentText[0]; var setCommentText = _commentText[1];
+  var _showAllComments = useState(false); var showAllComments = _showAllComments[0]; var setShowAllComments = _showAllComments[1];
+
+  var videoComments = (video && allComments[video.id]) || [];
+  var commentCount = videoComments.length;
+  var visibleComments = showAllComments ? videoComments : videoComments.slice(-3);
+
+  function addComment() {
+    if (!userId || !video || !commentText.trim()) return;
+    var next = Object.assign({}, allComments);
+    var arr = (next[video.id] || []).slice();
+    arr.push({ userId: userId, text: commentText.trim(), date: new Date().toISOString(), id: Date.now() });
+    next[video.id] = arr;
+    setAllComments(next);
+    localStorage.setItem(commentsKey, JSON.stringify(next));
+    setCommentText('');
+  }
+
+  function deleteComment(commentId) {
+    if (!video) return;
+    var next = Object.assign({}, allComments);
+    next[video.id] = (next[video.id] || []).filter(function(c) { return c.id !== commentId; });
+    setAllComments(next);
+    localStorage.setItem(commentsKey, JSON.stringify(next));
+  }
 
   useEffect(function() {
     if (!video) return;
     document.body.style.overflow = 'hidden';
+    setShowAllComments(false);
+    // reload data when video changes
+    setAllLikes(loadLikes());
+    setAllComments(loadComments());
+    setBookmarks(loadBookmarks());
     var handler = function(e) { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', handler);
     return function() {
@@ -526,27 +603,21 @@ function VideoModal({ video, allVideos, onClose, onOpen, onPlay }) {
     };
   }, [video]);
 
-  var related = useMemo(function() {
-    if (!video) return [];
-    return allVideos.filter(function(v) { return v.chapter === video.chapter && v.id !== video.id; }).slice(0, 4);
-  }, [video, allVideos]);
-
   if (!video) return null;
   var gr = gradientFor(video.id);
-  var instructor = instructorFor(video);
 
   return (
     <div className={'modal-backdrop' + (video ? ' open' : '')} onClick={onClose}>
       <div className="modal-sheet" onClick={function(e) { e.stopPropagation(); }}>
-        <div className="modal-video" style={{ background: 'linear-gradient(135deg, ' + gr[0] + ' 0%, ' + gr[1] + ' 100%)' }}>
+        <div className="modal-video" style={{ background: 'linear-gradient(135deg, ' + gr[0] + ' 0%, ' + gr[1] + ' 100%)' }} onClick={function() { onPlay(video); }}>
           <div className="modal-video-title">{video.title}</div>
-          <button className="modal-play-btn" aria-label="재생" onClick={function() { onPlay(video); }}>
+          <button className="modal-play-btn" aria-label="재생">
             <PlayIcon size={20} />
           </button>
-          <button className="modal-close" onClick={onClose} aria-label="닫기">
+          <button className="modal-close" onClick={function(e) { e.stopPropagation(); onClose(); }} aria-label="닫기">
             <Icon name="x" size={14} />
           </button>
-          <div className="modal-time-strip">
+          <div className="modal-time-strip" onClick={function(e) { e.stopPropagation(); }}>
             <span>00:00</span>
             <div className="scrub" />
             <span>{video.duration}</span>
@@ -557,7 +628,6 @@ function VideoModal({ video, allVideos, onClose, onOpen, onPlay }) {
           <div className="modal-meta-row">
             <span className="modal-tag orange">{sectionTitle(video.chapter)}</span>
             {isRecent(video.date) && <span className="modal-tag new">NEW</span>}
-            <span className="modal-tag ghost">미니연수원</span>
           </div>
           <h2 className="modal-title">{video.title}</h2>
           <div className="modal-submeta">
@@ -567,40 +637,56 @@ function VideoModal({ video, allVideos, onClose, onOpen, onPlay }) {
           </div>
 
           <div className="modal-actions">
-            <button className="modal-action-btn" onClick={function() { onPlay(video); }}>
-              <Icon name="play-circle" size={20} /> 재생
+            <button className={'modal-action-btn' + (liked ? ' active' : '')} onClick={toggleLike}>
+              <Icon name={liked ? 'thumb-fill' : 'thumb'} size={18} />
+              <span>좋아요{likeCount > 0 ? ' ' + likeCount : ''}</span>
             </button>
-            <button className={'modal-action-btn' + (liked ? ' active' : '')} onClick={function() { setLiked(function(v) { return !v; }); }}>
-              <Icon name={liked ? 'thumb-fill' : 'thumb'} size={18} /> 좋아요
+            <button className={'modal-action-btn' + (bookmarked ? ' active' : '')} onClick={toggleBookmark}>
+              <Icon name={bookmarked ? 'bookmark-fill' : 'bookmark'} size={18} />
+              <span>나중에</span>
             </button>
-            <button className={'modal-action-btn' + (bookmarked ? ' active' : '')} onClick={function() { setBookmarked(function(v) { return !v; }); }}>
-              <Icon name={bookmarked ? 'bookmark-fill' : 'bookmark'} size={18} /> 나중에
-            </button>
-            <button className="modal-action-btn">
-              <Icon name="share" size={18} /> 공유
+            <button className="modal-action-btn" onClick={function() { var el = document.querySelector('.comment-input'); if (el) el.focus(); }}>
+              <Icon name="message" size={18} />
+              <span>댓글{commentCount > 0 ? ' ' + commentCount : ''}</span>
             </button>
           </div>
 
-          <div className="modal-instructor">
-            <div className="avatar">{instructor.name.slice(0, 1)}</div>
-            <div className="info">
-              <div className="name">{instructor.name}</div>
-              <div className="sub">{instructor.team}</div>
+          {video.desc && <p className="modal-desc">{video.desc}</p>}
+
+          <div className="modal-comments">
+            <div className="comments-header">댓글 {commentCount > 0 && <span className="comments-count">{commentCount}</span>}</div>
+            {commentCount > 3 && !showAllComments && (
+              <button className="comments-more" onClick={function() { setShowAllComments(true); }}>
+                이전 댓글 {commentCount - 3}개 더보기
+              </button>
+            )}
+            {visibleComments.map(function(c) {
+              return (
+                <div key={c.id} className="comment-item">
+                  <div className="comment-top">
+                    <span className="comment-user">{c.userId}</span>
+                    <span className="comment-date">{daysAgoText(c.date.slice(0, 10))}</span>
+                    {(c.userId === userId) && (
+                      <button className="comment-delete" onClick={function() { deleteComment(c.id); }}>삭제</button>
+                    )}
+                  </div>
+                  <div className="comment-text">{c.text}</div>
+                </div>
+              );
+            })}
+            {commentCount === 0 && <div className="comments-empty">아직 댓글이 없습니다</div>}
+            <div className="comment-write">
+              <input
+                className="comment-input"
+                placeholder={userId ? '댓글을 입력하세요' : '로그인 후 댓글을 쓸 수 있습니다'}
+                value={commentText}
+                onChange={function(e) { setCommentText(e.target.value); }}
+                onKeyDown={function(e) { if (e.key === 'Enter') addComment(); }}
+                disabled={!userId}
+              />
+              <button className="comment-submit" onClick={addComment} disabled={!userId || !commentText.trim()}>등록</button>
             </div>
           </div>
-
-          <p className="modal-desc">{video.desc || '교육 영상 상세 내용이 여기에 표시됩니다.'}</p>
-
-          {related.length > 0 && (
-            <>
-              <div className="modal-related-title">관련 영상</div>
-              <div className="related-row no-scrollbar">
-                {related.map(function(r) {
-                  return <RelatedCard key={r.id} video={r} onClick={function() { onOpen(r); }} />;
-                })}
-              </div>
-            </>
-          )}
         </div>
       </div>
     </div>
@@ -999,6 +1085,7 @@ function App() {
           onClose={function() { setModalVideo(null); }}
           onOpen={setModalVideo}
           onPlay={handlePlay}
+          userId={userId}
         />
       )}
 

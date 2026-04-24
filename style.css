@@ -252,7 +252,7 @@ body {
 .modal-submeta { font-size: 13px; color: var(--text-mute); display: flex; align-items: center; gap: 6px; margin-bottom: 14px; font-family: 'Inter'; }
 .modal-submeta .dot { width: 3px; height: 3px; background: var(--text-mute); border-radius: 50%; }
 
-.modal-actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; padding: 10px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); margin-bottom: 14px; }
+.modal-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 10px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); margin-bottom: 14px; }
 .modal-action-btn { background: transparent; border: none; color: var(--text-mute); padding: 6px 0; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; font-family: inherit; font-size: 12px; }
 .modal-action-btn svg { width: 20px; height: 20px; stroke-width: 1.8; }
 .modal-action-btn.active { color: var(--orange); }
@@ -263,6 +263,25 @@ body {
 .modal-instructor .info .name { font-size: 14px; font-weight: 600; color: var(--text); }
 .modal-instructor .info .sub { font-size: 12.5px; color: var(--text-mute); margin-top: 1px; }
 .modal-desc { font-size: 14.5px; line-height: 1.6; color: var(--text-dim); margin: 0 0 18px; }
+
+/* 댓글 */
+.modal-comments { margin-top: 4px; }
+.comments-header { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+.comments-count { background: var(--orange); color: #fff; font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 10px; }
+.comments-more { background: none; border: none; color: var(--orange); font-size: 13px; font-weight: 600; cursor: pointer; padding: 0; margin-bottom: 8px; font-family: inherit; }
+.comments-empty { font-size: 13px; color: var(--text-mute); margin-bottom: 12px; }
+.comment-item { padding: 8px 0; border-bottom: 1px solid var(--line); }
+.comment-top { display: flex; align-items: center; gap: 8px; margin-bottom: 3px; }
+.comment-user { font-size: 13px; font-weight: 700; color: var(--orange); }
+.comment-date { font-size: 11px; color: var(--text-mute); font-family: 'Inter'; }
+.comment-delete { background: none; border: none; color: var(--text-mute); font-size: 11px; cursor: pointer; padding: 0; margin-left: auto; font-family: inherit; }
+.comment-delete:hover { color: var(--red); }
+.comment-text { font-size: 14px; line-height: 1.5; color: var(--text-dim); }
+.comment-write { display: flex; gap: 8px; margin-top: 12px; padding-bottom: 8px; }
+.comment-input { flex: 1; border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; font-size: 14px; font-family: inherit; background: var(--bg-soft); color: var(--text); outline: none; }
+.comment-input:focus { border-color: var(--orange); }
+.comment-submit { background: var(--orange); color: #fff; border: none; border-radius: 10px; padding: 9px 14px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; white-space: nowrap; }
+.comment-submit:disabled { opacity: 0.4; cursor: default; }
 
 .modal-related-title { font-size: 14px; font-weight: 700; margin: 22px 0 10px; color: var(--text-mute); letter-spacing: 0.02em; text-transform: uppercase; }
 .related-row { display: flex; gap: 8px; overflow-x: auto; }

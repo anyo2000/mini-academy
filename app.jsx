@@ -43,16 +43,6 @@ const SECTIONS = [
 
 const FILTER_TABS = ['홈'].concat(SECTIONS.map(function(s) { return s.tabLabel; }));
 
-// 탭 아이콘
-const TAB_ICONS = {
-  '홈': '🏠',
-  '개론': '◐',
-  'L · 연결': '🔗',
-  'I · 이슈': '❗',
-  'N · 설계': '▤',
-  'K · 해결': '✓',
-};
-
 // 탭 라벨 → chapter key 매핑
 function tabToChapter(tab) {
   var sec = SECTIONS.find(function(s) { return s.tabLabel === tab; });
@@ -89,11 +79,6 @@ function isRecent(dateStr, days) {
   const d = new Date(dateStr);
   const now = new Date();
   return (now - d) / (1000 * 60 * 60 * 24) <= days;
-}
-
-function instructorFor(video) {
-  if (video.instructor) return { name: video.instructor, team: video.team || '교육팀' };
-  return { name: '미니연수원', team: '교육팀' };
 }
 
 function parseDuration(dur) {
@@ -146,8 +131,6 @@ function Icon({ name, size }) {
       return <svg {...c}><path d="M7 11v9H4v-9h3zm3 9V11l4-8c1.1 0 2 .9 2 2v4h5a2 2 0 0 1 2 2l-1.5 7.5A2 2 0 0 1 19.5 20H10z"/></svg>;
     case 'thumb-fill':
       return <svg {...c} fill="currentColor" stroke="none"><path d="M7 11v9H4v-9h3zm3 9V11l4-8c1.1 0 2 .9 2 2v4h5a2 2 0 0 1 2 2l-1.5 7.5A2 2 0 0 1 19.5 20H10z"/></svg>;
-    case 'share':
-      return <svg {...c}><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M8.2 13.2l7.6 4.4M15.8 6.4l-7.6 4.4"/></svg>;
     case 'message':
       return <svg {...c}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10z"/></svg>;
     case 'x':
@@ -508,20 +491,6 @@ function SearchOverlay({ videos, onSelect, onClose }) {
 }
 
 /* ============================================================
- *  RelatedCard (모달 내 관련 영상)
- * ============================================================ */
-
-function RelatedCard({ video, onClick }) {
-  var gr = gradientFor(video.id);
-  return (
-    <div className="related-card" onClick={function() { onClick(video); }}>
-      <div className="grad-bg" style={{ background: 'linear-gradient(135deg, ' + gr[0] + ', ' + gr[1] + ')' }} />
-      <div className="title">{video.title}</div>
-    </div>
-  );
-}
-
-/* ============================================================
  *  VideoModal (영상 상세)
  * ============================================================ */
 
@@ -599,7 +568,6 @@ function VideoModal({ video, allVideos, onClose, onOpen, onPlay, userId }) {
     setAllComments(next);
     localStorage.setItem(commentsKey, JSON.stringify(next));
   }
-
 
   useEffect(function() {
     if (!video) return;
@@ -711,15 +679,16 @@ function VideoModal({ video, allVideos, onClose, onOpen, onPlay, userId }) {
  *  FullscreenPlayer (가로 90° 회전 + YouTube 재생)
  * ============================================================ */
 
-function FullscreenPlayer({ video, onClose, onAddWatchTime, onMarkWatched }) {
+function FullscreenPlayer({ video, onClose, onAddWatchTime }) {
   var _vis = useState(true);
   var controlsVisible = _vis[0]; var setControlsVisible = _vis[1];
+  var _ytReady = useState(false);
+  var ytReady = _ytReady[0]; var setYtReady = _ytReady[1];
   var hideTimer = useRef(null);
   var playerRef = useRef(null);
   var tickRef = useRef(null);
   var sessionSec = useRef(0);
   var maxSec = useRef(0);
-  var markedRef = useRef(false);
 
   function hideAfterDelay() {
     if (hideTimer.current) clearTimeout(hideTimer.current);
@@ -761,15 +730,12 @@ function FullscreenPlayer({ video, onClose, onAddWatchTime, onMarkWatched }) {
     document.body.style.overflow = 'hidden';
     maxSec.current = parseDuration(video.duration);
     sessionSec.current = 0;
-    markedRef.current = false;
-
-    // 시청 시작 기록
-    if (onMarkWatched) onMarkWatched(video.id);
-
 
     var hasYoutube = video.youtubeId && video.youtubeId !== '';
+    var apiAvailable = hasYoutube && window.YT && window.YT.Player;
+    setYtReady(!!apiAvailable);
 
-    if (hasYoutube && window.YT && window.YT.Player) {
+    if (apiAvailable) {
       playerRef.current = new window.YT.Player('yt-player-div', {
         videoId: video.youtubeId,
         playerVars: { autoplay: 1, playsinline: 1, rel: 0, modestbranding: 1 },
@@ -804,8 +770,16 @@ function FullscreenPlayer({ video, onClose, onAddWatchTime, onMarkWatched }) {
     <div className="player-root">
       <div className="player-rotate">
         <div className="player-stage" style={{ background: 'linear-gradient(135deg, ' + gr[0] + ' 0%, ' + gr[1] + ' 100%)' }}>
-          {hasYoutube ? (
+          {hasYoutube && ytReady ? (
             <div id="yt-player-div" style={{ width: '100%', height: '100%' }} />
+          ) : hasYoutube ? (
+            <iframe
+              src={'https://www.youtube.com/embed/' + video.youtubeId + '?autoplay=1&playsinline=1&rel=0&modestbranding=1'}
+              title={video.title}
+              allow="autoplay; encrypted-media; fullscreen"
+              allowFullScreen
+              style={{ width: '100%', height: '100%', border: 0 }}
+            />
           ) : (
             <div className="player-placeholder">
               <div className="ph-title">{video.title}</div>
@@ -944,7 +918,7 @@ function MyLearning({ videos, watchHistory, onOpen }) {
                     <h4 className="my-title">{r.title}</h4>
                     <div className="my-sub">
                       <span>{sectionTitle(r.chapter)}</span>
-                      <span style={{ color: 'rgba(255,255,255,0.2)' }}>·</span>
+                      <span style={{ color: 'var(--text-mute)' }}>·</span>
                       <span>{daysAgoText(r.lastWatched)}</span>
                     </div>
                     <div className="my-cont-btn">
@@ -1059,17 +1033,6 @@ function App() {
     });
   }, [saveHistory, videos]);
 
-  // 시청 횟수 기록 (플레이어 열 때 — 시청 시작만 기록, 완료 아님)
-  var markOpened = useCallback(function(videoId) {
-    setWatchHistory(function(prev) {
-      var entry = prev[videoId] || { count: 0, lastWatched: '', watchedSec: 0 };
-      var next = Object.assign({}, prev);
-      next[videoId] = Object.assign({}, entry, { lastWatched: new Date().toISOString() });
-      saveHistory(next);
-      return next;
-    });
-  }, [saveHistory]);
-
   var isWatched = useCallback(function(videoId) {
     if (!watchHistory[videoId]) return false;
     var entry = watchHistory[videoId];
@@ -1137,8 +1100,6 @@ function App() {
       duration: '03:12',
       youtubeId: 'DEVGIlscNEY',
       date: '2026-04-20',
-      instructor: 'LINK운영팀',
-      team: 'LINK운영팀',
     };
   }, []);
 
@@ -1208,7 +1169,6 @@ function App() {
           video={playerVideo}
           onClose={function() { setPlayerVideo(null); }}
           onAddWatchTime={addWatchTime}
-          onMarkWatched={markOpened}
         />
       )}
 

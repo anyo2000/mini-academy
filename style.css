@@ -1,6 +1,4 @@
 /* 미니연수원 — 라이트 웜 테마 */
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;900&family=Inter:wght@400;500;600;700&display=swap');
-
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body { margin: 0; padding: 0; }
 body {
@@ -109,7 +107,6 @@ body {
   position: relative; transition: color 0.2s; margin-right: 14px; font-family: inherit;
 }
 .cat-pill.active { color: var(--text); font-weight: 700; }
-.cat-pill .cat-icon { font-size: 13px; margin-right: 2px; }
 .cat-pill.active::after {
   content: ''; position: absolute; left: 4px; right: 4px; bottom: -3px;
   height: 2.5px; background: var(--cat-accent, var(--orange)); border-radius: 2px;
@@ -194,14 +191,6 @@ body {
 
 .card.watched { opacity: 0.7; }
 .card.watched:hover { opacity: 1; }
-.card-watched-mark {
-  position: absolute; top: 10px; right: 12px;
-  display: inline-flex; align-items: center; gap: 4px;
-  padding: 3px 8px 3px 6px; background: rgba(52,199,89,0.2);
-  color: var(--green); border: 1px solid rgba(52,199,89,0.4);
-  border-radius: 999px; font-size: 11px; font-weight: 700; backdrop-filter: blur(6px); z-index: 3;
-}
-
 /* ===== 탭바 ===== */
 .tabbar {
   position: fixed; bottom: 0; left: 0; right: 0;
@@ -247,7 +236,6 @@ body {
 .modal-meta-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
 .modal-tag { padding: 3px 8px; font-size: 12px; font-weight: 600; border-radius: 6px; }
 .modal-tag.orange { background: var(--orange); color: #fff; }
-.modal-tag.ghost { background: var(--orange-bg); color: var(--orange); border: 1px solid rgba(255,102,0,0.12); }
 .modal-tag.new { background: var(--red); color: #fff; font-family: 'Inter'; }
 .modal-title { font-size: 20px; font-weight: 800; line-height: 1.3; letter-spacing: -0.02em; margin: 6px 0 4px; color: var(--text); }
 .modal-submeta { font-size: 13px; color: var(--text-mute); display: flex; align-items: center; gap: 6px; margin-bottom: 14px; font-family: 'Inter'; }
@@ -259,10 +247,6 @@ body {
 .modal-action-btn.active { color: var(--orange); }
 .modal-action-btn:hover { color: var(--text); }
 
-.modal-instructor { display: flex; align-items: center; gap: 10px; padding: 10px 0; margin-bottom: 14px; }
-.modal-instructor .avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--orange-bg), var(--bg-soft)); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; color: var(--orange); flex-shrink: 0; border: 1px solid var(--line); }
-.modal-instructor .info .name { font-size: 14px; font-weight: 600; color: var(--text); }
-.modal-instructor .info .sub { font-size: 12.5px; color: var(--text-mute); margin-top: 1px; }
 .modal-desc { font-size: 14.5px; line-height: 1.6; color: var(--text-dim); margin: 0 0 18px; }
 
 /* 댓글 */
@@ -283,13 +267,6 @@ body {
 .comment-input:focus { border-color: var(--orange); }
 .comment-submit { background: var(--orange); color: #fff; border: none; border-radius: 10px; padding: 9px 14px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; white-space: nowrap; }
 .comment-submit:disabled { opacity: 0.4; cursor: default; }
-
-.modal-related-title { font-size: 14px; font-weight: 700; margin: 22px 0 10px; color: var(--text-mute); letter-spacing: 0.02em; text-transform: uppercase; }
-.related-row { display: flex; gap: 8px; overflow-x: auto; }
-.related-card { flex-shrink: 0; width: 140px; aspect-ratio: 16 / 10; border-radius: 12px; overflow: hidden; position: relative; cursor: pointer; }
-.related-card .title { position: absolute; left: 8px; right: 8px; bottom: 6px; font-size: 12px; font-weight: 700; line-height: 1.25; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.5); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.related-card .grad-bg { position: absolute; inset: 0; }
-.related-card .grad-bg::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.6), transparent 50%); }
 
 /* ===== 내 학습 ===== */
 .mypage { padding: 0 0 20px; }

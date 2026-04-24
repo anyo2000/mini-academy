@@ -587,6 +587,7 @@ function VideoModal({ video, allVideos, onClose, onOpen, onPlay, userId }) {
     localStorage.setItem(commentsKey, JSON.stringify(next));
   }
 
+
   useEffect(function() {
     if (!video) return;
     document.body.style.overflow = 'hidden';
@@ -704,10 +705,10 @@ function FullscreenPlayer({ video, onClose, onMarkWatched }) {
 
   function hideAfterDelay() {
     if (timerRef.current) clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(function() { setControlsVisible(false); }, 3000);
+    timerRef.current = setTimeout(function() { setControlsVisible(false); }, 4000);
   }
 
-  function handleTap() {
+  function showControls() {
     setControlsVisible(true);
     hideAfterDelay();
   }
@@ -731,7 +732,7 @@ function FullscreenPlayer({ video, onClose, onMarkWatched }) {
   var hasYoutube = video.youtubeId && video.youtubeId !== '';
 
   return (
-    <div className="player-root" onClick={handleTap}>
+    <div className="player-root">
       <div className="player-rotate">
         <div className="player-stage" style={{ background: 'linear-gradient(135deg, ' + gr[0] + ' 0%, ' + gr[1] + ' 100%)' }}>
           {hasYoutube ? (
@@ -748,15 +749,19 @@ function FullscreenPlayer({ video, onClose, onMarkWatched }) {
               <div className="ph-sub">영상이 준비 중입니다</div>
             </div>
           )}
-          <div className={'player-info-bar' + (controlsVisible ? '' : ' hidden')}>
+          {/* 투명 터치 레이어: 컨트롤 숨겨진 상태에서만 터치 받음 */}
+          {!controlsVisible && (
+            <div className="player-touch-layer" onClick={showControls} />
+          )}
+          <div className={'player-controls-overlay' + (controlsVisible ? '' : ' hidden')}>
             <button className="player-back-btn" onClick={function(e) { e.stopPropagation(); onClose(); }} aria-label="뒤로">
               <Icon name="back" size={16} />
             </button>
             <span className="player-title-text">{video.title}</span>
+            <button className="player-close-btn" onClick={function(e) { e.stopPropagation(); onClose(); }} aria-label="닫기">
+              <Icon name="x" size={16} />
+            </button>
           </div>
-          <button className={'player-close-btn' + (controlsVisible ? '' : ' hidden')} onClick={function(e) { e.stopPropagation(); onClose(); }} aria-label="닫기">
-            <Icon name="x" size={16} />
-          </button>
         </div>
       </div>
     </div>

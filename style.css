@@ -350,12 +350,14 @@ body {
 .player-placeholder { position: relative; text-align: center; padding: 0 8vw; }
 .ph-title { font-size: clamp(22px, 4vw, 34px); font-weight: 900; color: rgba(255,255,255,0.2); line-height: 1.2; }
 .ph-sub { font-size: 14px; color: rgba(255,255,255,0.35); margin-top: 14px; font-family: 'Inter'; }
-.player-close-btn { position: absolute; top: 14px; right: 14px; z-index: 10; width: 38px; height: 38px; border-radius: 50%; background: rgba(0,0,0,0.5); border: none; color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: opacity 0.4s ease; }
-.player-close-btn.hidden { opacity: 0; pointer-events: none; }
+.player-touch-layer { position: absolute; inset: 0; z-index: 15; cursor: pointer; }
+.player-controls-overlay { position: absolute; inset: 0; z-index: 20; display: flex; align-items: flex-start; padding: 14px; transition: opacity 0.4s ease; pointer-events: none; }
+.player-controls-overlay > * { pointer-events: auto; }
+.player-controls-overlay.hidden { opacity: 0; }
+.player-controls-overlay.hidden > * { pointer-events: none; }
+.player-close-btn { position: absolute; top: 14px; right: 14px; width: 38px; height: 38px; border-radius: 50%; background: rgba(0,0,0,0.5); border: none; color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 .player-close-btn svg { width: 16px; height: 16px; }
-.player-info-bar { position: absolute; top: 14px; left: 14px; z-index: 10; display: flex; align-items: center; gap: 10px; transition: opacity 0.4s ease; }
-.player-info-bar.hidden { opacity: 0; pointer-events: none; }
-.player-back-btn { width: 38px; height: 38px; border-radius: 50%; background: rgba(0,0,0,0.5); border: none; color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.player-back-btn { width: 38px; height: 38px; border-radius: 50%; background: rgba(0,0,0,0.5); border: none; color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
 .player-back-btn svg { width: 16px; height: 16px; }
 .player-title-text { font-size: 15px; font-weight: 700; color: rgba(255,255,255,0.9); max-width: 50vw; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 @media (min-width: 431px) { .player-rotate { width: min(100dvh, 780px); height: min(100dvw, 438px); } }

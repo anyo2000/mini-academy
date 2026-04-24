@@ -495,35 +495,23 @@ function SearchOverlay({ videos, onSelect, onClose }) {
  * ============================================================ */
 
 function VideoModal({ video, allVideos, onClose, onOpen, onPlay, userId }) {
-  // 좋아요 (전체 공유 — 영상별)
-  var likesKey = 'mini-academy-likes';
-  function loadLikes() {
-    try { return JSON.parse(localStorage.getItem(likesKey)) || {}; } catch(e) { return {}; }
-  }
-  var _likes = useState(loadLikes);
-  var allLikes = _likes[0]; var setAllLikes = _likes[1];
-
-  var videoLikes = (allLikes[video && video.id] || []);
+  // 좋아요 (Firestore — 영상별 문서)
+  var _likes = useState([]);
+  var videoLikes = _likes[0]; var setVideoLikes = _likes[1];
   var liked = userId && videoLikes.indexOf(userId) !== -1;
   var likeCount = videoLikes.length;
 
   function toggleLike() {
-    if (!userId) return;
-    var next = Object.assign({}, allLikes);
-    var arr = (next[video.id] || []).slice();
+    if (!userId || !video) return;
+    var arr = videoLikes.slice();
     var idx = arr.indexOf(userId);
     if (idx === -1) { arr.push(userId); } else { arr.splice(idx, 1); }
-    next[video.id] = arr;
-    setAllLikes(next);
-    localStorage.setItem(likesKey, JSON.stringify(next));
+    setVideoLikes(arr);
+    db.collection('likes').doc(video.id).set({ users: arr });
   }
 
-  // 나중에 보기 (사용자별)
-  var bmKey = 'mini-academy-bookmarks-' + (userId || '');
-  function loadBookmarks() {
-    try { return JSON.parse(localStorage.getItem(bmKey)) || []; } catch(e) { return []; }
-  }
-  var _bm = useState(loadBookmarks);
+  // 나중에 보기 (Firestore — 사용자별 문서)
+  var _bm = useState([]);
   var bookmarks = _bm[0]; var setBookmarks = _bm[1];
   var bookmarked = video && bookmarks.indexOf(video.id) !== -1;
 
@@ -533,50 +521,52 @@ function VideoModal({ video, allVideos, onClose, onOpen, onPlay, userId }) {
     var idx = arr.indexOf(video.id);
     if (idx === -1) { arr.push(video.id); } else { arr.splice(idx, 1); }
     setBookmarks(arr);
-    localStorage.setItem(bmKey, JSON.stringify(arr));
+    db.collection('bookmarks').doc(userId).set({ videoIds: arr });
   }
 
-  // 댓글 (전체 공유 — 영상별)
-  var commentsKey = 'mini-academy-comments';
-  function loadComments() {
-    try { return JSON.parse(localStorage.getItem(commentsKey)) || {}; } catch(e) { return {}; }
-  }
-  var _comments = useState(loadComments);
-  var allComments = _comments[0]; var setAllComments = _comments[1];
+  // 댓글 (Firestore — 영상별 서브컬렉션)
+  var _comments = useState([]);
+  var videoComments = _comments[0]; var setVideoComments = _comments[1];
   var _commentText = useState(''); var commentText = _commentText[0]; var setCommentText = _commentText[1];
   var _showAllComments = useState(false); var showAllComments = _showAllComments[0]; var setShowAllComments = _showAllComments[1];
 
-  var videoComments = (video && allComments[video.id]) || [];
   var commentCount = videoComments.length;
   var visibleComments = showAllComments ? videoComments : videoComments.slice(-3);
 
   function addComment() {
     if (!userId || !video || !commentText.trim()) return;
-    var next = Object.assign({}, allComments);
-    var arr = (next[video.id] || []).slice();
-    arr.push({ userId: userId, text: commentText.trim(), date: new Date().toISOString(), id: Date.now() });
-    next[video.id] = arr;
-    setAllComments(next);
-    localStorage.setItem(commentsKey, JSON.stringify(next));
+    var newComment = { userId: userId, text: commentText.trim(), date: new Date().toISOString(), id: Date.now() };
+    var arr = videoComments.concat([newComment]);
+    setVideoComments(arr);
+    db.collection('comments').doc(video.id).set({ list: arr });
     setCommentText('');
   }
 
   function deleteComment(commentId) {
     if (!video) return;
-    var next = Object.assign({}, allComments);
-    next[video.id] = (next[video.id] || []).filter(function(c) { return c.id !== commentId; });
-    setAllComments(next);
-    localStorage.setItem(commentsKey, JSON.stringify(next));
+    var arr = videoComments.filter(function(c) { return c.id !== commentId; });
+    setVideoComments(arr);
+    db.collection('comments').doc(video.id).set({ list: arr });
   }
 
   useEffect(function() {
     if (!video) return;
     document.body.style.overflow = 'hidden';
     setShowAllComments(false);
-    // reload data when video changes
-    setAllLikes(loadLikes());
-    setAllComments(loadComments());
-    setBookmarks(loadBookmarks());
+
+    // Firestore에서 데이터 로드
+    db.collection('likes').doc(video.id).get().then(function(doc) {
+      setVideoLikes(doc.exists ? (doc.data().users || []) : []);
+    });
+    db.collection('comments').doc(video.id).get().then(function(doc) {
+      setVideoComments(doc.exists ? (doc.data().list || []) : []);
+    });
+    if (userId) {
+      db.collection('bookmarks').doc(userId).get().then(function(doc) {
+        setBookmarks(doc.exists ? (doc.data().videoIds || []) : []);
+      });
+    }
+
     var handler = function(e) { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', handler);
     return function() {
@@ -959,20 +949,24 @@ function App() {
   // 시청 기록
   var _wh = useState({}); var watchHistory = _wh[0]; var setWatchHistory = _wh[1];
 
-  // 좋아요 (읽기 전용 — 모달에서 변경 시 리로드)
-  var _appLikes = useState(function() {
-    try { return JSON.parse(localStorage.getItem('mini-academy-likes')) || {}; } catch(e) { return {}; }
-  });
+  // 좋아요 (Firestore에서 로드)
+  var _appLikes = useState({});
   var appLikes = _appLikes[0]; var setAppLikes = _appLikes[1];
 
   var getLikeCount = useCallback(function(videoId) {
     return (appLikes[videoId] || []).length;
   }, [appLikes]);
 
-  // 모달 닫힐 때 좋아요 새로고침
   function refreshLikes() {
-    try { setAppLikes(JSON.parse(localStorage.getItem('mini-academy-likes')) || {}); } catch(e) {}
+    db.collection('likes').get().then(function(snapshot) {
+      var result = {};
+      snapshot.forEach(function(doc) { result[doc.id] = doc.data().users || []; });
+      setAppLikes(result);
+    });
   }
+
+  // 앱 시작 시 좋아요 로드
+  useEffect(function() { refreshLikes(); }, []);
 
   // UI
   var _tab = useState('home'); var tab = _tab[0]; var setTab = _tab[1];
@@ -994,18 +988,18 @@ function App() {
     if (!userId) setLoginOpen(true);
   }, []);
 
-  // 시청 기록 로드
+  // 시청 기록 로드 (Firestore)
   useEffect(function() {
     if (!userId) { setWatchHistory({}); return; }
-    var key = 'mini-academy-history-' + userId;
-    var saved = localStorage.getItem(key);
-    setWatchHistory(saved ? JSON.parse(saved) : {});
+    db.collection('watchHistory').doc(userId).get().then(function(doc) {
+      setWatchHistory(doc.exists ? doc.data() : {});
+    });
   }, [userId]);
 
-  // 시청 기록 저장
+  // 시청 기록 저장 (Firestore)
   var saveHistory = useCallback(function(next) {
     if (!userId) return;
-    localStorage.setItem('mini-academy-history-' + userId, JSON.stringify(next));
+    db.collection('watchHistory').doc(userId).set(next);
   }, [userId]);
 
   // 시청 시간 누적 (플레이어 닫힐 때 호출)

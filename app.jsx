@@ -283,7 +283,7 @@ function Hero({ video, onOpen }) {
  *  VideoCard
  * ============================================================ */
 
-function VideoCard({ video, watched, watchCount, onClick }) {
+function VideoCard({ video, watched, watchCount, likeCount, onClick }) {
   var theme = themeFor(video.chapter);
   var isNew = isRecent(video.date);
   var mainTitle = video.title.split(' — ')[0];
@@ -313,6 +313,7 @@ function VideoCard({ video, watched, watchCount, onClick }) {
               <span className="card-dur-light">{video.duration}</span>
               {isNew && !watched && <span className="card-new">NEW</span>}
               {watched && <span className="card-done-chip"><CheckIcon size={10} />완료</span>}
+              {likeCount > 0 && <span className="card-like-count">♥ {likeCount}</span>}
             </div>
           </div>
         </div>
@@ -328,7 +329,7 @@ function VideoCard({ video, watched, watchCount, onClick }) {
  *  Section (가로 스크롤 행)
  * ============================================================ */
 
-function Section({ title, subtitle, count, videos, layout, isWatched, getWatchCount, onOpen, isTop, chapterKey }) {
+function Section({ title, subtitle, count, videos, layout, isWatched, getWatchCount, getLikeCount, onOpen, isTop, chapterKey }) {
   if (!videos || videos.length === 0) return null;
   var dotColor = chapterKey ? (themeFor(chapterKey).accent || 'var(--orange)') : 'var(--orange)';
   return (
@@ -348,6 +349,7 @@ function Section({ title, subtitle, count, videos, layout, isWatched, getWatchCo
               video={v}
               watched={isWatched(v.id)}
               watchCount={getWatchCount(v.id)}
+              likeCount={getLikeCount ? getLikeCount(v.id) : 0}
               onClick={onOpen}
             />
           );
@@ -922,6 +924,21 @@ function App() {
   // 시청 기록
   var _wh = useState({}); var watchHistory = _wh[0]; var setWatchHistory = _wh[1];
 
+  // 좋아요 (읽기 전용 — 모달에서 변경 시 리로드)
+  var _appLikes = useState(function() {
+    try { return JSON.parse(localStorage.getItem('mini-academy-likes')) || {}; } catch(e) { return {}; }
+  });
+  var appLikes = _appLikes[0]; var setAppLikes = _appLikes[1];
+
+  var getLikeCount = useCallback(function(videoId) {
+    return (appLikes[videoId] || []).length;
+  }, [appLikes]);
+
+  // 모달 닫힐 때 좋아요 새로고침
+  function refreshLikes() {
+    try { setAppLikes(JSON.parse(localStorage.getItem('mini-academy-likes')) || {}); } catch(e) {}
+  }
+
   // UI
   var _tab = useState('home'); var tab = _tab[0]; var setTab = _tab[1];
   var _cat = useState('홈'); var cat = _cat[0]; var setCat = _cat[1];
@@ -1068,6 +1085,7 @@ function App() {
                     layout={cat !== '홈' ? 'stack' : 'row'}
                     isWatched={isWatched}
                     getWatchCount={getWatchCount}
+                    getLikeCount={getLikeCount}
                     onOpen={setModalVideo}
                     isTop={s.isTop}
                     chapterKey={s.chapterKey}
@@ -1087,7 +1105,7 @@ function App() {
         <VideoModal
           video={modalVideo}
           allVideos={videos}
-          onClose={function() { setModalVideo(null); }}
+          onClose={function() { setModalVideo(null); refreshLikes(); }}
           onOpen={setModalVideo}
           onPlay={handlePlay}
           userId={userId}

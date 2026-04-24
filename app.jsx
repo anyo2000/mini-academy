@@ -672,8 +672,7 @@ function VideoModal({ video, allVideos, onClose, onOpen, onPlay, userId }) {
 function FullscreenPlayer({ video, onClose, onAddWatchTime }) {
   var _vis = useState(true);
   var controlsVisible = _vis[0]; var setControlsVisible = _vis[1];
-  var _ytReady = useState(false);
-  var ytReady = _ytReady[0]; var setYtReady = _ytReady[1];
+  var ytApiAvailable = !!(window.YT && window.YT.Player);
   var hideTimer = useRef(null);
   var playerRef = useRef(null);
   var tickRef = useRef(null);
@@ -722,10 +721,8 @@ function FullscreenPlayer({ video, onClose, onAddWatchTime }) {
     sessionSec.current = 0;
 
     var hasYoutube = video.youtubeId && video.youtubeId !== '';
-    var apiAvailable = hasYoutube && window.YT && window.YT.Player;
-    setYtReady(!!apiAvailable);
 
-    if (apiAvailable) {
+    if (hasYoutube && ytApiAvailable) {
       playerRef.current = new window.YT.Player('yt-player-div', {
         videoId: video.youtubeId,
         playerVars: { autoplay: 1, playsinline: 1, rel: 0, modestbranding: 1 },
@@ -760,7 +757,7 @@ function FullscreenPlayer({ video, onClose, onAddWatchTime }) {
     <div className="player-root">
       <div className="player-rotate">
         <div className="player-stage" style={{ background: 'linear-gradient(135deg, ' + gr[0] + ' 0%, ' + gr[1] + ' 100%)' }}>
-          {hasYoutube && ytReady ? (
+          {hasYoutube && ytApiAvailable ? (
             <div id="yt-player-div" style={{ width: '100%', height: '100%' }} />
           ) : hasYoutube ? (
             <iframe
